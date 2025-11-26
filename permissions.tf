@@ -1,31 +1,20 @@
 ##-----------------------------------------------------------------------------
 ## Permissions, Roles, and Policies
 ##-----------------------------------------------------------------------------
-provider "azurerm" {
-  features {}
-}
 
-# -------------------------------
-# Application Roles
-# -------------------------------
-resource "azuread_application_app_role" "reader" {
-  count                = var.enable ? 1 : 0
-  application_id       = azuread_application.sp[0].id
-  allowed_member_types = ["User", "Application"]
-  description          = "Read-only access to the application."
-  display_name         = "Reader"
-  value                = "Reader"
-  role_id              = uuid()
-}
+# Application Roles (Dynamic)
+resource "azuread_application_app_role" "roles" {
+  for_each = var.enable ? {
+    for role in var.application_roles :
+    role.value => role
+  } : {}
 
-resource "azuread_application_app_role" "admin" {
-  count                = var.enable ? 1 : 0
   application_id       = azuread_application.sp[0].id
-  allowed_member_types = ["User", "Application"]
-  description          = "Full administrative access to the application."
-  display_name         = "Admin"
-  value                = "Admin"
+  display_name         = each.value.display_name
+  value                = each.value.value
+  description          = each.value.description
   role_id              = uuid()
+  allowed_member_types = each.value.allowed_member_types
 }
 
 locals {
@@ -37,32 +26,20 @@ locals {
   ]
 }
 
-# -------------------------------
-# Assign App Roles to the SP
-# -------------------------------
+# Assign App Roles to the SP (Dynamic)
 resource "azuread_app_role_assignment" "assign_roles" {
-  for_each = {
-    reader = azuread_application_app_role.reader[0].role_id
-    admin  = azuread_application_app_role.admin[0].role_id
-  }
+  for_each = var.enable ? azuread_application_app_role.roles : {}
 
-  app_role_id         = each.value
+  app_role_id         = each.value.role_id
   principal_object_id = azuread_service_principal.sp[0].object_id
   resource_object_id  = azuread_service_principal.sp[0].object_id
-
-  depends_on = [
-    azuread_service_principal.sp,
-    azuread_application_app_role.reader,
-    azuread_application_app_role.admin
-  ]
 }
 
-# -------------------------------
-# Azure Role Assignment (Contributor)
-# -------------------------------
-resource "azurerm_role_assignment" "sp_contributor" {
-  count                = var.enable ? 1 : 0
-  scope                = data.azurerm_subscription.current.id
-  role_definition_name = "Contributor"
+# Optional Azure RBAC Assignment
+resource "azurerm_role_assignment" "sp_role" {
+  count = var.enable_role_assignment ? 1 : 0
+
+  scope                = var.role_scope != null ? var.role_scope : data.azurerm_subscription.current.id
+  role_definition_name = var.role_definition_name
   principal_id         = azuread_service_principal.sp[0].object_id
 }

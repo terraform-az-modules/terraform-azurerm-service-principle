@@ -1,3 +1,6 @@
+##-----------------------------------------------------------------------------
+## Versions
+##-----------------------------------------------------------------------------
 # Terraform version
 terraform {
   required_version = ">= 1.6.6"
@@ -12,6 +15,10 @@ terraform {
     azuread = {
       source  = "hashicorp/azuread"
       version = ">=3.0.0"
+    }
+    time = {
+      source  = "hashicorp/time"
+      version = ">= 0.9.1"
     }
   }
 }
