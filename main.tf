@@ -1,23 +1,68 @@
 ##-----------------------------------------------------------------------------
-## Resources
+## Standard Tagging Module – Applies standard tags to all resources for traceability
 ##-----------------------------------------------------------------------------
-resource "azuread_application" "this" {
-  display_name = local.combined_name
+module "labels" {
+  source          = "terraform-az-modules/tags/azurerm"
+  version         = "1.0.2"
+  name            = var.custom_name == null ? var.name : var.custom_name
+  location        = var.location
+  environment     = var.environment
+  managedby       = var.managedby
+  label_order     = var.label_order
+  repository      = var.repository
+  deployment_mode = var.deployment_mode
+  extra_tags      = var.extra_tags
 }
 
-resource "azuread_service_principal" "this" {
-  application_id = azuread_application.this.application_id
+##-------------------------------
+## Azure AD Application
+##-------------------------------
+resource "azuread_application" "sp" {
+  count        = var.enable ? 1 : 0
+  display_name = var.name
+  owners       = [var.owner_object_id]
+
+  # Single web block with all redirect URIs
+  web {
+    redirect_uris = var.redirect_uris
+    # Only one logout URL is allowed
+    logout_url = length(var.front_channel_logout_urls) > 0 ? var.front_channel_logout_urls[0] : null
+  }
+
+  # Dynamic API Permissions
+  dynamic "required_resource_access" {
+    for_each = local.required_permissions
+    content {
+      resource_app_id = required_resource_access.value.resource_app_id
+
+      dynamic "resource_access" {
+        for_each = required_resource_access.value.resource_access
+        content {
+          id   = resource_access.value.id
+          type = resource_access.value.type
+        }
+      }
+    }
+  }
 }
 
-resource "azuread_service_principal_password" "this" {
-  service_principal_id = azuread_service_principal.this.id
-  end_date_relative    = "8760h" # 1 year
+# -------------------------------
+# Service Principal
+# -------------------------------
+resource "azuread_service_principal" "sp" {
+  count                        = var.enable ? 1 : 0
+  client_id                    = azuread_application.sp[0].client_id
+  app_role_assignment_required = false
+  owners                       = [var.owner_object_id]
 }
 
-# Optional Role Assignment (at resource group level)
-resource "azurerm_role_assignment" "this" {
-  count                = var.role_name != null ? 1 : 0
-  scope                = data.azurerm_resource_group.rg.id
-  role_definition_name = var.role_name
-  principal_id         = azuread_service_principal.this.id
+# -------------------------------
+# Secrets
+# -------------------------------
+resource "azuread_application_password" "sp_secrets" {
+  for_each = var.enable ? var.secret_map : {}
+
+  application_id = azuread_application.sp[0].id
+  display_name   = each.key
+  end_date       = timeadd(timestamp(), each.value)
 }

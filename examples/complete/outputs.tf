@@ -1,19 +1,15 @@
 ##-----------------------------------------------------------------------------
 ## Outputs
 ##-----------------------------------------------------------------------------
-output "app_id" {
-  value = module.service_principal.application_id
-}
-
-output "sp_id" {
+output "sp_service_principal_id" {
   value = module.service_principal.service_principal_id
 }
 
-output "tenant_id" {
-  value = module.service_principal.tenant_id
+output "sp_client_id" {
+  value = module.service_principal.service_principal_client_id
 }
 
-output "client_secret" {
-  value     = module.service_principal.client_secret
-  sensitive = true
+output "sp_secrets" {
+  value     = module.service_principal.service_principal_secrets
+  sensitive = true # to show values in console
 }

@@ -4,27 +4,32 @@ provider "azurerm" {
 
 provider "azuread" {}
 
-##-----------------------------------------------------------------------------
-## Resource Group module call
-##-----------------------------------------------------------------------------
-module "resource_group" {
-  source      = "terraform-az-modules/resource-group/azure"
-  version     = "1.0.0"
-  name        = "core"
-  environment = "dev"
-  location    = "centralus"
-  label_order = ["name", "environment", "location"]
-}
+data "azuread_client_config" "current" {}
 
 ##-----------------------------------------------------------------------------
 ## Service Principal module call
 ##-----------------------------------------------------------------------------
 module "service_principal" {
-  source              = "../../"
-  name                = "core"
-  environment         = "dev"
-  role_name           = "Contributor"
-  label_order         = ["name", "environment", "location"]
-  resource_group_name = module.resource_group.resource_group_name
-  location            = module.resource_group.resource_group_location
+  source          = "../../"
+  name            = "my-sp"
+  location        = "centralcanada"
+  owner_object_id = data.azuread_client_config.current.object_id
+  # Multiple redirect URIs are allowed
+  redirect_uris = [
+    "https://localhost/",
+    "https://myapp.com/callback",
+    "https://myapp.com/redirect"
+  ]
+
+  # Only the first logout URL is supported by azuread_application resource
+  front_channel_logout_urls = [
+    "https://localhost/logout"
+  ]
+  secret_map = {
+    secret1 = "4380h"  # 6 months
+    secret2 = "8760h"  # 1 year
+    secret3 = "13140h" # 1.5 years
+  }
+  enable_api_permission = true
+  enable_token_config   = true
 }
