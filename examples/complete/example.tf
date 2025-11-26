@@ -12,7 +12,6 @@ data "azuread_client_config" "current" {}
 module "service_principal" {
   source          = "../../"
   name            = "my-sp"
-  location        = "centralcanada"
   owner_object_id = data.azuread_client_config.current.object_id
   # Multiple redirect URIs are allowed
   redirect_uris = [

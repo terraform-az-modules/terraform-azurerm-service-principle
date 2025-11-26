@@ -42,19 +42,19 @@ variable "front_channel_logout_urls" {
   description = "List of front-channel logout URLs"
 }
 
-  variable "api_permissions" {
-    type = list(object({
-      id   = string
-      type = string
-    }))
-    default = [
-      { id = "e1fe6dd8-ba31-4d61-89e7-88639da4683d", type = "Scope" },
-      { id = "64a6cdd6-aab1-4aaf-94b8-3cc8405e90d0", type = "Scope" },
-      { id = "14dad69e-099b-42c9-810b-d002981feec1", type = "Scope" },
-      { id = "37f7f235-527c-4136-accd-4a02d197296e", type = "Scope" },
-    ]
-    description = "A list of Azure AD API permission objects to assign to the application. Each permission must include the permission ID and type (Scope or Role)."
-  }
+variable "api_permissions" {
+  type = list(object({
+    id   = string
+    type = string
+  }))
+  default = [
+    { id = "e1fe6dd8-ba31-4d61-89e7-88639da4683d", type = "Scope" },
+    { id = "64a6cdd6-aab1-4aaf-94b8-3cc8405e90d0", type = "Scope" },
+    { id = "14dad69e-099b-42c9-810b-d002981feec1", type = "Scope" },
+    { id = "37f7f235-527c-4136-accd-4a02d197296e", type = "Scope" },
+  ]
+  description = "A list of Azure AD API permission objects to assign to the application. Each permission must include the permission ID and type (Scope or Role)."
+}
 
 variable "resource_app_id" {
   type        = string

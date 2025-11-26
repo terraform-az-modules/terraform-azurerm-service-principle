@@ -30,6 +30,6 @@ output "service_principal_secrets" {
       value = secret.value
     }
   } : {}
-  sensitive = true
+  sensitive   = true
   description = "Map of secret names to their ID and value"
 }

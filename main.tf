@@ -7,8 +7,8 @@ resource "azuread_application" "sp" {
   owners       = [var.owner_object_id]
 
   web {
-    redirect_uris            = var.redirect_uris
-    logout_url = length(var.front_channel_logout_urls) > 0 ? var.front_channel_logout_urls[0] : null
+    redirect_uris = var.redirect_uris
+    logout_url    = length(var.front_channel_logout_urls) > 0 ? var.front_channel_logout_urls[0] : null
   }
 
 
