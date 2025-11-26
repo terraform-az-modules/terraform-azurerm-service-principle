@@ -31,5 +31,4 @@ module "service_principal" {
     secret3 = "13140h" # 1.5 years
   }
   enable_api_permission = true
-  enable_token_config   = true
 }

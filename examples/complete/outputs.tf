@@ -11,5 +11,5 @@ output "sp_client_id" {
 
 output "sp_secrets" {
   value     = module.service_principal.service_principal_secrets
-  sensitive = true # to show values in console
+  sensitive = true
 }
