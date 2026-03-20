@@ -21,4 +21,8 @@ terraform {
       version = ">= 0.9.1"
     }
   }
+
+  provider_meta "azurerm" {
+    module_name = "terraform-az-modules/terraform-azurerm-service-principle"
+  }
 }
